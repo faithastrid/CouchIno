@@ -1,6 +1,13 @@
 #include <Sabertooth.h>
 //Packet serial
-Sabertooth ST(128);
+Sabertooth ST1(128);
+Sabertooth ST2(130); //actual value unkown, will have to chenge later
+//st1 and st2 refer to the different motor controllers
+
+//later, we can comdense both motor controllers to one class such as
+//Sabertooth ST [2] = { Sabertooth(128), Sabertooth(130) };
+
+
 int motorSpeed = 0;
 // Connections to make:
 //   Arduino TX->1  ->  Sabertooth S1
@@ -20,6 +27,17 @@ void setup() {
   Serial.begin(9600);
   SabertoothTXPinSerial.begin(9600);// start communication
   Serial.println("Enter motor speed(-127 to 127)..."); // ask user input
+  ST1.setTimeout(10000); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
+  ST2.setTimeout(10000);
+  //only works in increments of 100 milliseconds
+  //this will stop motors on 10 seconds without new input
+
+//  ST.setDeadband(20); //this will create a deadspot from -20 to 20
+  //this will stop the motor if the incoming input is in the deadspot for one second
+  //will help later to fine tune controller
+
+    ST1.setRamping(14); //this makes sure the motors dont burn themselves out when changing speed suddenly
+    ST1.setRamping(14);
 }
 
 void loop() {
@@ -30,11 +48,19 @@ void loop() {
     Serial.println(motorSpeed);
   }
   if (motorSpeed >=-127 && motorSpeed <=127){
-  ST.motor(1, motorSpeed); //turn on motor 1
+  ST1.motor(1, motorSpeed); //turn on motor 1
   delay(5000); //wait 5 sec
-  ST.motor(1, 0); // turn off motor 1
-  ST.motor(2, motorSpeed); // turn on motor 2
+  ST1.motor(1, 0); // turn off motor 1
+  ST1.motor(2, motorSpeed); // turn on motor 2
   delay(5000);//wait 5 sec
-  ST.motor(2, 0); // turn off motor 2
+  ST1.motor(2, 0); // turn off motor 2
+  delay (5000);
+  
+  ST2.motor(1, motorSpeed); //turn on motor 1
+  delay(5000); //wait 5 sec
+  ST2.motor(1, 0); // turn off motor 1
+  ST2.motor(2, motorSpeed); // turn on motor 2
+  delay(5000);//wait 5 sec
+  ST2.motor(2, 0); // turn off motor 2
   }
 }
