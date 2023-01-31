@@ -1,6 +1,6 @@
-#include <SabertoothSimplified.h>
-/simple serial
-SabertoothSimplified ST;
+#include <Sabertooth.h>
+/Packet serial
+Sabertooth ST(128);
 int motorSpeed = 0;
 // Connections to make:
 //   Arduino TX->1  ->  Sabertooth S1
