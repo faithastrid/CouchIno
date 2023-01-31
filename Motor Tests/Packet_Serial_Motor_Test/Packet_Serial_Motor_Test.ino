@@ -1,5 +1,5 @@
 #include <Sabertooth.h>
-/Packet serial
+//Packet serial
 Sabertooth ST(128);
 int motorSpeed = 0;
 // Connections to make:
@@ -19,7 +19,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   SabertoothTXPinSerial.begin(9600);// start communication
-  Serial.println("Enter motor speed(0-255)..."); // ask user input
+  Serial.println("Enter motor speed(-127 to 127)..."); // ask user input
 }
 
 void loop() {
@@ -29,10 +29,12 @@ void loop() {
     Serial.print("Motor Speed: ");
     Serial.println(motorSpeed);
   }
+  if (motorSpeed >=-127 && motorSpeed <=127){
   ST.motor(1, motorSpeed); //turn on motor 1
   delay(5000); //wait 5 sec
   ST.motor(1, 0); // turn off motor 1
   ST.motor(2, motorSpeed); // turn on motor 2
   delay(5000);//wait 5 sec
   ST.motor(2, 0); // turn off motor 2
+  }
 }
