@@ -14,7 +14,7 @@ int motorSpeed = 0;
 //   Arduino GND    ->  Sabertooth 0V
 //   Arduino VIN    ->  Sabertooth 5V (OPTIONAL, if you want the Sabertooth to power the Arduino)
 // baud rate 9600
-//dip switches
+//dip switches for address 128
 // 1 on
 // 2 off
 // 3 on
@@ -38,6 +38,14 @@ void setup() {
 
     ST1.setRamping(14); //this makes sure the motors dont burn themselves out when changing speed suddenly
     ST1.setRamping(14);
+
+
+    ST1.setMinVoltage(30);//will turn off motors if the voltage gets too low, such as low battery
+    ST2.setMinVoltage(30);//Value = (desired volts-6) x 5 
+ 
+    //ST.setMaxVoltage(71);//this will stop regenerative braking if they start producing more power than the battery can accept at a time
+    //ST.setMaxVoltage(71);//Value = Desired Volts*5.12
+    //according to the documentation this should not matter since we are using a battery, we can leave at default
 }
 
 void loop() {
