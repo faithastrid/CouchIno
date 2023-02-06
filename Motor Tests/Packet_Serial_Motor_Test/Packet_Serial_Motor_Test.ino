@@ -70,6 +70,7 @@ void loop() {
       delay(5000);//wait 5 sec
       STL.motor(2, 0); // turn off motor 2
       delay (5000);
+
       
       STR.motor(1, motorSpeed); //turn on motor 1
       delay(5000); //wait 5 sec
