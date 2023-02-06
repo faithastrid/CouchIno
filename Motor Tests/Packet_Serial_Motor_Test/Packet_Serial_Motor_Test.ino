@@ -1,11 +1,11 @@
 #include <Sabertooth.h>
 //Packet serial
-Sabertooth ST1(128);
-Sabertooth ST2(130); //actual value unkown, will have to chenge later
-//st1 and st2 refer to the different motor controllers
+Sabertooth STL(128);
+Sabertooth STR(129);
+//STL and STR refer to the different motor controllers
 
 //later, we can comdense both motor controllers to one class such as
-//Sabertooth ST [2] = { Sabertooth(128), Sabertooth(130) };
+//Sabertooth ST [2] = { Sabertooth(128), Sabertooth(129) };
 
 
 int motorSpeed = 0;
@@ -22,13 +22,20 @@ int motorSpeed = 0;
 // 5 on
 // 6 off
 
+//dip switches for address 129
+// 1 off
+// 2 off
+// 3 on
+// 4 off
+// 5 on
+// 6 on
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   SabertoothTXPinSerial.begin(9600);// start communication
   Serial.println("Enter motor speed(-127 to 127)..."); // ask user input
-  ST1.setTimeout(10000); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
-  ST2.setTimeout(10000);
+  STL.setTimeout(10000); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
+  STR.setTimeout(10000);
   //only works in increments of 100 milliseconds
   //this will stop motors on 10 seconds without new input
 
@@ -36,12 +43,12 @@ void setup() {
   //this will stop the motor if the incoming input is in the deadspot for one second
   //will help later to fine tune controller
 
-    ST1.setRamping(14); //this makes sure the motors dont burn themselves out when changing speed suddenly
-    ST1.setRamping(14);
+    STL.setRamping(14); //this makes sure the motors dont burn themselves out when changing speed suddenly
+    STR.setRamping(14);
 
 
-    ST1.setMinVoltage(30);//will turn off motors if the voltage gets too low, such as low battery
-    ST2.setMinVoltage(30);//Value = (desired volts-6) x 5 
+    STL.setMinVoltage(30);//will turn off motors if the voltage gets too low, such as low battery
+    STR.setMinVoltage(30);//Value = (desired volts-6) x 5 
  
     //ST.setMaxVoltage(71);//this will stop regenerative braking if they start producing more power than the battery can accept at a time
     //ST.setMaxVoltage(71);//Value = Desired Volts*5.12
@@ -50,25 +57,26 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if (Serial.available()>0){ //receive user input
+  if (Serial.available() > 0){ //receive user input
     motorSpeed = Serial.parseInt();
     Serial.print("Motor Speed: ");
     Serial.println(motorSpeed);
-  }
-  if (motorSpeed >=-127 && motorSpeed <=127){
-  ST1.motor(1, motorSpeed); //turn on motor 1
-  delay(5000); //wait 5 sec
-  ST1.motor(1, 0); // turn off motor 1
-  ST1.motor(2, motorSpeed); // turn on motor 2
-  delay(5000);//wait 5 sec
-  ST1.motor(2, 0); // turn off motor 2
-  delay (5000);
-  
-  ST2.motor(1, motorSpeed); //turn on motor 1
-  delay(5000); //wait 5 sec
-  ST2.motor(1, 0); // turn off motor 1
-  ST2.motor(2, motorSpeed); // turn on motor 2
-  delay(5000);//wait 5 sec
-  ST2.motor(2, 0); // turn off motor 2
+    
+    if (motorSpeed >= -127 && motorSpeed <= 127){
+      STL.motor(1, motorSpeed); //turn on motor 1
+      delay(5000); //wait 5 sec
+      STL.motor(1, 0); // turn off motor 1
+      STL.motor(2, motorSpeed); // turn on motor 2
+      delay(5000);//wait 5 sec
+      STL.motor(2, 0); // turn off motor 2
+      delay (5000);
+      
+      STR.motor(1, motorSpeed); //turn on motor 1
+      delay(5000); //wait 5 sec
+      STR.motor(1, 0); // turn off motor 1
+      STR.motor(2, motorSpeed); // turn on motor 2
+      delay(5000);//wait 5 sec
+      STR.motor(2, 0); // turn off motor 2
+    }
   }
 }
