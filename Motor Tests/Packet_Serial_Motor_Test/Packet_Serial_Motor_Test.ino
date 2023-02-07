@@ -1,14 +1,16 @@
+#include <SoftwareSerial.h>
 #include <Sabertooth.h>
 //Packet serial
-Sabertooth STL(128);
-Sabertooth STR(129);
+SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 11 (to S1).
+Sabertooth STL(128, SWSerial);
+Sabertooth STR(129, SWSerial);
 //STL and STR refer to the different motor controllers
 
 //later, we can comdense both motor controllers to one class such as
 //Sabertooth ST [2] = { Sabertooth(128), Sabertooth(129) };
 
 
-int motorSpeed = 0;
+long int motorSpeed = 0;
 // Connections to make:
 //   Arduino TX->1  ->  Sabertooth S1
 //   Arduino GND    ->  Sabertooth 0V
@@ -31,7 +33,7 @@ int motorSpeed = 0;
 // 6 on
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  SWSerial.begin(9600);
   SabertoothTXPinSerial.begin(9600);// start communication
   Serial.println("Enter motor speed(-127 to 127)..."); // ask user input
   STL.setTimeout(10000); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
@@ -69,7 +71,6 @@ void loop() {
       STL.motor(2, motorSpeed); // turn on motor 2
       delay(5000);//wait 5 sec
       STL.motor(2, 0); // turn off motor 2
-      delay (5000);
 
       
       STR.motor(1, motorSpeed); //turn on motor 1
