@@ -1,9 +1,0 @@
-steps to run couch:
-
-1. power switch on
-2. computer hotspot on
-3. plug in controller (top right usb port)
-4. ssh into pi:
-	pi@raspberrypi
-	pw: raspberry
-5. couch should run now goodluck
