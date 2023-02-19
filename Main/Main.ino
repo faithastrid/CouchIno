@@ -1,23 +1,24 @@
 #include <SoftwareSerial.h>
 #include <Sabertooth.h>
 //Packet serial
-//SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 11 (to S1).
+//SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
 //Sabertooth STL(128, SWSerial);
 //Sabertooth STR(129, SWSerial);
-Sabertooth STL(128);
-Sabertooth STL(129);
+  Sabertooth STL(128);
+  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
 
-//later, we can comdense both motor controllers to one class such as
-//Sabertooth ST [2] = { Sabertooth(128), Sabertooth(129) };
+int input_c_R = 0;
+int input_c_L = 0;
+int output_R = 0;
+int output_L = 0;
 
-
-long int motorSpeed = 0;
 // Connections to make:
 //   Arduino TX->1  ->  Sabertooth S1
 //   Arduino GND    ->  Sabertooth 0V
 //   Arduino VIN    ->  Sabertooth 5V (OPTIONAL, if you want the Sabertooth to power the Arduino)
 // baud rate 9600
+
 //dip switches for address 128
 // 1 on
 // 2 off
@@ -40,26 +41,116 @@ void setup() {
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
   //only works in increments of 100 milliseconds
-  //this will stop motors on 10 seconds without new input
+  //this will stop motors on .10 seconds without new input
 
   //  ST.setDeadband(20); //this will create a deadspot from -20 to 20
   //this will stop the motor if the incoming input is in the deadspot for one second
   //will help later to fine tune controller
 
-    STL.setRamping(14); //this makes sure the motors dont burn themselves out when changing speed suddenly
-    STR.setRamping(14);
 
+  cli();//stop interrupts
 
-   // STL.setMinVoltage(30);//will turn off motors if the voltage gets too low, such as low battery
-   // STR.setMinVoltage(30);//Value = (desired volts-6) x 5 
- 
-    //ST.setMaxVoltage(71);//this will stop regenerative braking if they start producing more power than the battery can accept at a time
-    //ST.setMaxVoltage(71);//Value = Desired Volts*5.12
-    //according to the documentation this should not matter since we are using a battery, we can leave at default
+  //set timer4 interrupt at 100Hz
+  TCCR4A = 0;// set entire TCCR1A register to 0
+  TCCR4B = 0;// same for TCCR1B
+  TCNT4  = 0;//initialize counter value to 0
+  // set compare match register for 100hz increments
+  OCR4A = 2499/1;// = (16*10^6) / (100*64) - 1 (must be <65536)
+  // turn on CTC mode
+  TCCR4B |= (1 << WGM12);
+  // Set CS12 and CS10 bits for 64 prescaler
+  TCCR4B |= (1 << CS11) | (1 << CS10);  
+  // enable timer compare interrupt
+  TIMSK4 |= (1 << OCIE4A);
 
+  sei();//allow interrupts
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+
+  //read input from controller and put it into the variable input_c_L and input_c_R
+}
+
+ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 10ms
+  output_R = SmoothVelocity_R(input_c_R);
+  output_L = SmoothVelocity_L(input_c_L);
   
+  STR.motor(1, output_R);
+  STR.motor(2, output_R);
+  STL.motor(1, output_L);
+  STL.motor(2, output_L);
+
+}
+int CurrVelocity_R [6] = {0,0,0,0,0,0};
+int CurrAcceleration_R [6] = {0,0,0,0,0,0};
+int CurrJerk_R [6] = {0,0,0,0,0,0};
+
+int ptVelocity_R = 0;
+int ptAcceleration_R = 0;
+int ptJerk_R = 0;
+
+int MeanVelocity_R = 0;
+int MeanAcceleration_R = 0;
+int MeanJerk_R = 0;
+
+int CurrVelocity_L [6] = {0,0,0,0,0,0};
+int CurrAcceleration_L [6] = {0,0,0,0,0,0};
+int CurrJerk_L [6] = {0,0,0,0,0,0};
+
+int ptVelocity_L = 0;
+int ptAcceleration_L = 0;
+int ptJerk_L = 0;
+
+int MeanVelocity_L = 0;
+int MeanAcceleration_L = 0;
+int MeanJerk_L = 0;
+
+int SmoothVelocity_R(int Velocity_new_R){
+  MeanVelocity_R = MeanVelocity_R + Velocity_new_R - CurrVelocity_R[ptVelocity_R];
+  CurrVelocity_R[ptVelocity_R] = Velocity_new_R;
+  ptVelocity_R = (ptVelocity_R + 1) % 6;
+  return SmoothAcceleration_R(MeanVelocity_R / 6);
+}//here we are doing the first pass of smoothing the instant accerlation by taking a moving average
+//all three functions do the same thing, they just create a more smooth curve each time
+//they take the mean of the last 6 values and print that to the next function
+//this way accerlation is smoother
+
+int SmoothAcceleration_R(int Acceleration_new_R){
+  MeanAcceleration_R = MeanAcceleration_R + Acceleration_new_R - CurrAcceleration_R[ptAcceleration_R];
+  CurrAcceleration_R[ptAcceleration_R] = Acceleration_new_R;
+  ptAcceleration_R = (ptAcceleration_R + 1) % 6;
+  return SmoothJerk_R(MeanAcceleration_R / 6);
+}
+
+int SmoothJerk_R(int Jerk_new_R){
+  MeanJerk_R = MeanJerk_R + Jerk_new_R - CurrJerk_R[ptJerk_R];
+  CurrJerk_R[ptJerk_R] = Jerk_new_R;
+  ptJerk_R = (ptJerk_R + 1) % 6;
+  return MeanJerk_R / 6;
+}
+
+int SmoothVelocity_L(int Velocity_new_L){
+  MeanVelocity_L = MeanVelocity_L + Velocity_new_L - CurrVelocity_L[ptVelocity_L];
+  CurrVelocity_L[ptVelocity_L] = Velocity_new_L;
+  ptVelocity_L = (ptVelocity_L + 1) % 6;
+  return SmoothAcceleration_L(MeanVelocity_L / 6);
+}//here we are doing the first pass of smoothing the instant accerlation by taking a moving average
+//all three functions do the same thing, they just create a more smooth curve each time
+//they take the mean of the last 6 values and print that to the next function
+//this way accerlation is smoother
+
+int SmoothAcceleration_L(int Acceleration_new_L){
+  MeanAcceleration_L = MeanAcceleration_L + Acceleration_new_L - CurrAcceleration_L[ptAcceleration_L];
+  CurrAcceleration_L[ptAcceleration_L] = Acceleration_new_L;
+  ptAcceleration_L = (ptAcceleration_L + 1) % 6;
+  return SmoothJerk_L(MeanAcceleration_L / 6);
+}
+
+int SmoothJerk_L(int Jerk_new_L){
+  MeanJerk_L = MeanJerk_L + Jerk_new_L - CurrJerk_L[ptJerk_L];
+  CurrJerk_L[ptJerk_L] = Jerk_new_L;
+  ptJerk_L = (ptJerk_L + 1) % 6;
+  return MeanJerk_L / 6;
 }
