@@ -14,7 +14,7 @@ int output_R = 0;
 int output_L = 0;
 
 // Connections to make:
-//   Arduino TX->1  ->  Sabertooth S1
+//   Arduino (TX->1)use 14 instead!!!!!!  ->  Sabertooth S1
 //   Arduino GND    ->  Sabertooth 0V
 //   Arduino VIN    ->  Sabertooth 5V (OPTIONAL, if you want the Sabertooth to power the Arduino)
 // baud rate 9600
@@ -60,6 +60,7 @@ void setup() {
   // put your setup code here, to run once:
   // start communication  
   SWSerial.begin(9600);
+  SabertoothTXPinSerial.begin(9600);// start communication
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
   //only works in increments of 100 milliseconds
@@ -69,7 +70,7 @@ void setup() {
   //this will stop the motor if the incoming input is in the deadspot for one second
   //will help later to fine tune controller
 
-
+/*
   cli();//stop interrupts
 
   //set timer4 interrupt at 100Hz
@@ -88,7 +89,7 @@ void setup() {
   TIMSK4 |= (1 << OCIE4A);
 
   sei();//allow interrupts
-
+*/
 }
 /*
  * Main loop
@@ -99,11 +100,29 @@ void loop() {
   //forward is zero backwards is 255
   //resting is 127
   Usb.Task();
-  input_c_l = (127-lf310.lf310Data.Y) / 2
-  input_c_r = (127-lf310.lf310Data.Rz) / 2
+  input_c_L = int((127 - lf310.lf310Data.Y) / 2);
+  input_c_R = int((127 - lf310.lf310Data.Rz) / 2);
   //read input from controller and put it into the variable input_c_L and input_c_R
-}
 
+
+  delay (10);
+  output_R = SmoothVelocity_R(input_c_R);
+  output_L = SmoothVelocity_L(input_c_L);
+  
+  STR.motor(1, output_R);
+  STR.motor(2, output_R);
+  STL.motor(1, output_L);
+  STL.motor(2, output_L);
+          Serial.print("Left Joystick X: ");
+          Serial.println(lf310.lf310Data.X);
+          Serial.print("Right Joystick X: ");
+          Serial.println(lf310.lf310Data.Z);
+          Serial.print("Output Right: ");
+          Serial.println(output_R);
+          Serial.print("Output Left: ");
+          Serial.println(output_L);
+}
+/*
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 10ms
   output_R = SmoothVelocity_R(input_c_R);
   output_L = SmoothVelocity_L(input_c_L);
@@ -114,7 +133,7 @@ ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 10ms
   STL.motor(2, output_L);
 
 }
-
+*/
 /*
  * Ramp function
  */
