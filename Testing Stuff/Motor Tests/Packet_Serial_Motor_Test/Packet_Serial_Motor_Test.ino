@@ -1,12 +1,22 @@
+/*
+ * This code allows u to specify a speed on the serial monitor and it will output it to all motors one by one
+ */
+
+
+
+#include <SoftwareSerial.h>
 #include <Sabertooth.h>
 //Packet serial
-Sabertooth STL(128);
-Sabertooth STR(129);
+SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
+Sabertooth STL(128, SWSerial);
+Sabertooth STR(129, SWSerial);
 //STL and STR refer to the different motor controllers
 
 //later, we can comdense both motor controllers to one class such as
 //Sabertooth ST [2] = { Sabertooth(128), Sabertooth(129) };
 
+
+long int motorSpeed = 0;
 // Connections to make:
 //   Arduino TX->1  ->  Sabertooth S1
 //   Arduino GND    ->  Sabertooth 0V
@@ -29,8 +39,9 @@ Sabertooth STR(129);
 // 6 on
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  SWSerial.begin(9600);
   SabertoothTXPinSerial.begin(9600);// start communication
+  Serial.println("Enter motor speed(-127 to 127)..."); // ask user input
   STL.setTimeout(10000); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(10000);
   //only works in increments of 100 milliseconds
@@ -53,22 +64,27 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:    
-    
-      STL.motor(1, 50); //turn on motor 1
+  // put your main code here, to run repeatedly:
+  if (Serial.available() > 0){ //receive user input
+    motorSpeed = Serial.parseInt();
+    Serial.print("Motor Speed: ");
+    Serial.println(motorSpeed);
+      
+    if (motorSpeed >= -127 && motorSpeed <= 127){
+      STL.motor(1, motorSpeed); //turn on motor 1
       delay(5000); //wait 5 sec
       STL.motor(1, 0); // turn off motor 1
-      STL.motor(2, 50); // turn on motor 2
+      STL.motor(2, motorSpeed); // turn on motor 2
       delay(5000);//wait 5 sec
       STL.motor(2, 0); // turn off motor 2
-      delay (5000);
 
       
-      STR.motor(1, 50); //turn on motor 1
+      STR.motor(1, motorSpeed); //turn on motor 1
       delay(5000); //wait 5 sec
       STR.motor(1, 0); // turn off motor 1
-      STR.motor(2, 50); // turn on motor 2
+      STR.motor(2, motorSpeed); // turn on motor 2
       delay(5000);//wait 5 sec
       STR.motor(2, 0); // turn off motor 2
-    
+    }
   }
+}

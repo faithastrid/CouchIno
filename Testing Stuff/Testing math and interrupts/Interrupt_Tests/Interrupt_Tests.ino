@@ -1,75 +1,20 @@
-#include <SoftwareSerial.h>
-#include <Sabertooth.h>
-//Packet serial
-SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
-Sabertooth STL(128, SWSerial);
-Sabertooth STR(129, SWSerial);
-//  Sabertooth STL(128);
-//  Sabertooth STR(129);
-//STL and STR refer to the different motor controllers
-
+/*
+ * This code was a test to make sure that the interrupt works
+ * the problem was that it was happening too fast
+ * dont make the timer 4 interrupt less than 50 ms
+ * 
+ * 
+ * this program does not talk to the motor controllers at all
+ */
 int input_c_R = 0;
 int input_c_L = 0;
 int output_R = 0;
 int output_L = 0;
 
-// Connections to make:
-//   Arduino (TX->1)use 14 instead!!!!!!  ->  Sabertooth S1
-//   Arduino GND    ->  Sabertooth 0V
-//   Arduino VIN    ->  Sabertooth 5V (OPTIONAL, if you want the Sabertooth to power the Arduino)
-// baud rate 9600
-
-//dip switches for address 128
-// 1 on
-// 2 off
-// 3 on
-// 4 off
-// 5 on
-// 6 off
-
-//dip switches for address 129
-// 1 off
-// 2 off
-// 3 on
-// 4 off
-// 5 on
-// 6 on
-
-
-/*
- Example sketch for the Logitech F310 gamepad
- */
-
-// Satisfy IDE, which only needs to see the include statment in the ino.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-
-#include <SPI.h>
-#include "lf310.h"
-
-USB Usb;
-LF310 lf310(&Usb);
-
-
 
 void setup() {
 
-  Serial.begin(115200);//start talking to logitech controller
-  
   // put your setup code here, to run once:
-  // start communication  
-  SWSerial.begin(9600);
-  STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
-  STR.setTimeout(100);
-  //only works in increments of 100 milliseconds
-  //this will stop motors on .10 seconds without new input
-
-  //  ST.setDeadband(20); //this will create a deadspot from -20 to 20
-  //this will stop the motor if the incoming input is in the deadspot for one second
-  //will help later to fine tune controller
-
-
   cli();//stop interrupts
 
   //set timer4 interrupt at 10Hz
@@ -95,25 +40,23 @@ void setup() {
 */
 void loop() {
   // put your main code here, to run repeatedly:
-  //both joysticks go from 0 to 255
-  //forward is zero backwards is 255
-  //resting is 127
-  Usb.Task();
-  input_c_L = int((127 - lf310.lf310Data.Y) / 2);
-  input_c_R = int((127 - lf310.lf310Data.Rz) / 2);
-  //read input from controller and put it into the variable input_c_L and input_c_R
+
+
+  for (int i = 0; i <= 255; i++){//just change the input to hard coded values and then wait for the interrupt to happen twice
+  input_c_R = i;
+  delay(100);
+  }
   
 }
 
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms
-  output_R = SmoothVelocity_R(input_c_R);
+  output_R = SmoothVelocity_R(input_c_R); //calculate the output values and just print to console with the input value
   output_L = SmoothVelocity_L(input_c_L);
-    
-  STR.motor(1, output_R);
-  STR.motor(2, output_R);
-  STL.motor(1, output_L);
-  STL.motor(2, output_L);
-
+  Serial.print("Input: ");
+  Serial.println(input_c_R);
+  Serial.print("Output: ");
+  Serial.println(output_R);
+ 
 }
 
 /*
