@@ -1,11 +1,11 @@
 #include <SoftwareSerial.h>
 #include <Sabertooth.h>
 //Packet serial
-//SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
-//Sabertooth STL(128, SWSerial);
-//Sabertooth STR(129, SWSerial);
-  Sabertooth STL(128);
-  Sabertooth STR(129);
+SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
+Sabertooth STL(128, SWSerial);
+Sabertooth STR(129, SWSerial);
+//  Sabertooth STL(128);
+//  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
 
 int input_c_R = 0;
@@ -34,10 +34,32 @@ int output_L = 0;
 // 4 off
 // 5 on
 // 6 on
+
+
+/*
+ Example sketch for the Logitech F310 gamepad
+ */
+
+// Satisfy IDE, which only needs to see the include statment in the ino.
+#ifdef dobogusinclude
+#include <spi4teensy3.h>
+#endif
+
+#include <SPI.h>
+#include "lf310.h"
+
+USB Usb;
+LF310 lf310(&Usb);
+
+
+
 void setup() {
-  // put your setup code here, to run once:
-  SabertoothTXPinSerial.begin(9600);// start communication  
+
+  Serial.begin(115200);//start talking to logitech controller
   
+  // put your setup code here, to run once:
+  // start communication  
+  SWSerial.begin(9600);
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
   //only works in increments of 100 milliseconds
@@ -54,8 +76,10 @@ void setup() {
   TCCR4A = 0;// set entire TCCR1A register to 0
   TCCR4B = 0;// same for TCCR1B
   TCNT4  = 0;//initialize counter value to 0
+  
   // set compare match register for 100hz increments
   OCR4A = 2499/1;// = (16*10^6) / (100*64) - 1 (must be <65536)
+  
   // turn on CTC mode
   TCCR4B |= (1 << WGM12);
   // Set CS12 and CS10 bits for 64 prescaler
@@ -64,12 +88,19 @@ void setup() {
   TIMSK4 |= (1 << OCIE4A);
 
   sei();//allow interrupts
-}
 
+}
+/*
+ * Main loop
+*/
 void loop() {
   // put your main code here, to run repeatedly:
-
-
+  //both joysticks go from 0 to 255
+  //forward is zero backwards is 255
+  //resting is 127
+  Usb.Task();
+  input_c_l = (127-lf310.lf310Data.Y) / 2
+  input_c_r = (127-lf310.lf310Data.Rz) / 2
   //read input from controller and put it into the variable input_c_L and input_c_R
 }
 
@@ -83,6 +114,11 @@ ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 10ms
   STL.motor(2, output_L);
 
 }
+
+/*
+ * Ramp function
+ */
+ 
 int CurrVelocity_R [6] = {0,0,0,0,0,0};
 int CurrAcceleration_R [6] = {0,0,0,0,0,0};
 int CurrJerk_R [6] = {0,0,0,0,0,0};
