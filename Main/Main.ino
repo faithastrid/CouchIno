@@ -140,10 +140,10 @@ ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms
 /*
  * Ramp function
  */
- 
-int CurrVelocity_R [6] = {0,0,0,0,0,0};
-int CurrAcceleration_R [6] = {0,0,0,0,0,0};
-int CurrJerk_R [6] = {0,0,0,0,0,0};
+const int ramper = 3;
+int CurrVelocity_R [ramper] = {0,0,0};
+int CurrAcceleration_R [ramper] = {0,0,0};
+int CurrJerk_R [ramper] = {0,0,0};
 
 int ptVelocity_R = 0;
 int ptAcceleration_R = 0;
@@ -153,9 +153,9 @@ int MeanVelocity_R = 0;
 int MeanAcceleration_R = 0;
 int MeanJerk_R = 0;
 
-int CurrVelocity_L [6] = {0,0,0,0,0,0};
-int CurrAcceleration_L [6] = {0,0,0,0,0,0};
-int CurrJerk_L [6] = {0,0,0,0,0,0};
+int CurrVelocity_L [ramper] = {0,0,0};
+int CurrAcceleration_L [ramper] = {0,0,0};
+int CurrJerk_L [ramper] = {0,0,0};
 
 int ptVelocity_L = 0;
 int ptAcceleration_L = 0;
@@ -168,8 +168,8 @@ int MeanJerk_L = 0;
 int SmoothVelocity_R(int Velocity_new_R){
   MeanVelocity_R = MeanVelocity_R + Velocity_new_R - CurrVelocity_R[ptVelocity_R];
   CurrVelocity_R[ptVelocity_R] = Velocity_new_R;
-  ptVelocity_R = (ptVelocity_R + 1) % 6;
-  return SmoothAcceleration_R(MeanVelocity_R / 6);
+  ptVelocity_R = (ptVelocity_R + 1) % ramper;
+  return SmoothAcceleration_R(MeanVelocity_R / ramper);
 }//here we are doing the first pass of smoothing the instant accerlation by taking a moving average
 //all three functions do the same thing, they just create a more smooth curve each time
 //they take the mean of the last 6 values and print that to the next function
@@ -178,22 +178,22 @@ int SmoothVelocity_R(int Velocity_new_R){
 int SmoothAcceleration_R(int Acceleration_new_R){
   MeanAcceleration_R = MeanAcceleration_R + Acceleration_new_R - CurrAcceleration_R[ptAcceleration_R];
   CurrAcceleration_R[ptAcceleration_R] = Acceleration_new_R;
-  ptAcceleration_R = (ptAcceleration_R + 1) % 6;
-  return SmoothJerk_R(MeanAcceleration_R / 6);
+  ptAcceleration_R = (ptAcceleration_R + 1) % ramper;
+  return SmoothJerk_R(MeanAcceleration_R / ramper);
 }
 
 int SmoothJerk_R(int Jerk_new_R){
   MeanJerk_R = MeanJerk_R + Jerk_new_R - CurrJerk_R[ptJerk_R];
   CurrJerk_R[ptJerk_R] = Jerk_new_R;
-  ptJerk_R = (ptJerk_R + 1) % 6;
-  return MeanJerk_R / 6;
+  ptJerk_R = (ptJerk_R + 1) % ramper;
+  return MeanJerk_R / ramper;
 }
 
 int SmoothVelocity_L(int Velocity_new_L){
   MeanVelocity_L = MeanVelocity_L + Velocity_new_L - CurrVelocity_L[ptVelocity_L];
   CurrVelocity_L[ptVelocity_L] = Velocity_new_L;
-  ptVelocity_L = (ptVelocity_L + 1) % 6;
-  return SmoothAcceleration_L(MeanVelocity_L / 6);
+  ptVelocity_L = (ptVelocity_L + 1) % ramper;
+  return SmoothAcceleration_L(MeanVelocity_L / ramper);
 }//here we are doing the first pass of smoothing the instant accerlation by taking a moving average
 //all three functions do the same thing, they just create a more smooth curve each time
 //they take the mean of the last 6 values and print that to the next function
@@ -202,13 +202,13 @@ int SmoothVelocity_L(int Velocity_new_L){
 int SmoothAcceleration_L(int Acceleration_new_L){
   MeanAcceleration_L = MeanAcceleration_L + Acceleration_new_L - CurrAcceleration_L[ptAcceleration_L];
   CurrAcceleration_L[ptAcceleration_L] = Acceleration_new_L;
-  ptAcceleration_L = (ptAcceleration_L + 1) % 6;
-  return SmoothJerk_L(MeanAcceleration_L / 6);
+  ptAcceleration_L = (ptAcceleration_L + 1) % ramper;
+  return SmoothJerk_L(MeanAcceleration_L / ramper);
 }
 
 int SmoothJerk_L(int Jerk_new_L){
   MeanJerk_L = MeanJerk_L + Jerk_new_L - CurrJerk_L[ptJerk_L];
   CurrJerk_L[ptJerk_L] = Jerk_new_L;
-  ptJerk_L = (ptJerk_L + 1) % 6;
-  return MeanJerk_L / 6;
+  ptJerk_L = (ptJerk_L + 1) % ramper;
+  return MeanJerk_L / ramper;
 }
