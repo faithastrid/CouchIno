@@ -8,10 +8,13 @@ Sabertooth STR(129, SWSerial);
 //  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
 
+const float SPEED_PERCENT = .5;
+
 int input_c_R = 0;
 int input_c_L = 0;
 int output_R = 0;
 int output_L = 0;
+
 
 // Connections to make:
 //   Arduino (TX->1)use 14 instead!!!!!!  ->  Sabertooth S1
@@ -52,11 +55,24 @@ USB Usb;
 LF310 lf310(&Usb);
 
 
-
 void setup() {
 
-  Serial.begin(115200);//start talking to logitech controller
-  
+          Serial.begin(115200);
+#if !defined(__MIPSEL__)
+        while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
+#endif
+        Serial.println("Starting Logitech F310 gamepad");
+
+        if (Usb.Init() == -1)
+                Serial.println("OSC did not start.");
+                
+        // Set this to higher values to enable more debug information
+        // minimum 0x00, maximum 0xff, default 0x80
+        // UsbDEBUGlvl = 0xff;
+
+        delay(200);
+
+        
   // put your setup code here, to run once:
   // start communication  
   SWSerial.begin(9600);
@@ -99,16 +115,21 @@ void loop() {
   //forward is zero backwards is 255
   //resting is 127
   Usb.Task();
-  input_c_L = int((127 - lf310.lf310Data.Y) / 2);
-  input_c_R = int((127 - lf310.lf310Data.Rz) / 2);
-  //read input from controller and put it into the variable input_c_L and input_c_R
-  
+  if (lf310.connected()) {
+    input_c_L = int(SPEED_PERCENT * (127 - lf310.lf310Data.Y));
+    input_c_R = int(SPEED_PERCENT * (127 - lf310.lf310Data.Rz));
+    delay(20);
+    //read input from controller and put it into the variable input_c_L and input_c_R
+  }
 }
 
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms
   output_R = SmoothVelocity_R(input_c_R);
   output_L = SmoothVelocity_L(input_c_L);
-    
+//    Serial.print("Output R ");
+//   Serial.println(output_R);
+//    Serial.print("Output L ");
+//    Serial.println(output_L);
   STR.motor(1, output_R);
   STR.motor(2, output_R);
   STL.motor(1, output_L);
