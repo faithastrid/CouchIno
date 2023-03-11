@@ -8,7 +8,11 @@ Moving on, the couch originally ran on python, but the code was stupid and undoc
 # Important Notes
 
 Arnav Surjan is not allowed to drive the couch!!!
+
 Do not touch the joysticks while turning on the couch!
+
+## How to turn it on?
+Just turn on the main power switch on the couch. Unlike the py, we do not have to ssh in, so the couch will be ready to drive within 3 seconds. Please do not touch the joysticks during this sequence as the controllers undergo a callibratione very time they turn on. There is a switch on the underneath of the couch, that should connect to the battery charger. Please turn it off when driving and only turn on when charging. This is to prevent a short when we are not charging the couch.
 
 ## High Level Code Overview
 
