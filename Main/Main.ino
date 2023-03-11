@@ -8,7 +8,12 @@ Sabertooth STR(129, SWSerial);
 //  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
 
-const float SPEED_PERCENT = .5;
+int pot_SPEED = A3;
+int pot_DRIFT = A4;
+const int Drift_pot_max_val = 100;
+const int Speed_pot_max_val = 100;
+float SPEED_PERCENT = .5;
+float DRIFT_CONTROL = 1.0;
 
 int input_c_R = 0;
 int input_c_L = 0;
@@ -114,10 +119,12 @@ void loop() {
   //both joysticks go from 0 to 255
   //forward is zero backwards is 255
   //resting is 127
+  SPEED_PERCENT = analogRead(pot_SPEED) / Speed_pot_max_val;
+  DRIFT_CONTROL = analogRead(pot_DRIFT) / (Drift_pot_max_val / 2);
   Usb.Task();
   if (lf310.connected()) {
-    input_c_L = int(SPEED_PERCENT * (127 - lf310.lf310Data.Y));
-    input_c_R = int(SPEED_PERCENT * (127 - lf310.lf310Data.Rz));
+    input_c_L = int(DRIFT_CONTROL * SPEED_PERCENT * (127 - lf310.lf310Data.Y));
+    input_c_R = int(DRIFT_CONTROL * SPEED_PERCENT * (127 - lf310.lf310Data.Rz));
     delay(20);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
