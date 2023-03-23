@@ -1,10 +1,10 @@
-int potPin = A3; // Potentiometer output connected to analog pin
-int potVal = 0; // Variable to store the input from the potentiometer
+int potPin = A2; // Potentiometer output connected to analog pin
+float potVal = 0; // Variable to store the input from the potentiometer
 
 
 void setup() {
   // put your setup code here, to run once:
-
+  Serial.begin(9600);
 }
 
 void loop() {

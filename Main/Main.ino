@@ -8,10 +8,10 @@ Sabertooth STR(129, SWSerial);
 //  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
 
-int pot_SPEED = A3;
-int pot_DRIFT = A4;
-const int Drift_pot_max_val = 100;
-const int Speed_pot_max_val = 100;
+int pot_SPEED = A0;
+int pot_DRIFT = A1;
+const float Drift_pot_max_val = 798;
+const float Speed_pot_max_val = 798;
 float SPEED_PERCENT = .5;
 float DRIFT_CONTROL = 1.0;
 
@@ -123,25 +123,37 @@ void loop() {
   DRIFT_CONTROL = analogRead(pot_DRIFT) / (Drift_pot_max_val / 2);
   Usb.Task();
   if (lf310.connected()) {
-    input_c_L = int(DRIFT_CONTROL * SPEED_PERCENT * (127 - lf310.lf310Data.Y));
-    input_c_R = int(DRIFT_CONTROL * SPEED_PERCENT * (127 - lf310.lf310Data.Rz));
+    //input_c_L = int(DRIFT_CONTROL * (127 - lf310.lf310Data.Y));
+    //input_c_R = int((2 - DRIFT_CONTROL) * (127 - lf310.lf310Data.Rz));
+    input_c_L = int((127 - lf310.lf310Data.Y));
+    input_c_R = int((127 - lf310.lf310Data.Rz));
+    if (input_c_R >128){ input_c_R = 128;}
+    if (input_c_R <-128){ input_c_R = -128;}
+    if (input_c_L >128){ input_c_L = 128;}
+    if (input_c_L <-128){ input_c_L = -128;}
     delay(20);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
 }
 
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms
-  output_R = SmoothVelocity_R(input_c_R);
-  output_L = SmoothVelocity_L(input_c_L);
-//    Serial.print("Output R ");
+  output_R = SmoothVelocity_R(input_c_R  * SPEED_PERCENT);
+  output_L = SmoothVelocity_L(input_c_L  * SPEED_PERCENT);
+//   Serial.print("Output R ");
 //   Serial.println(output_R);
-//    Serial.print("Output L ");
-//    Serial.println(output_L);
+//   Serial.print("Output L ");
+//   Serial.println(output_L);
+//   Serial.print("Speed ");
+//   Serial.println(SPEED_PERCENT);
+//   Serial.print("Drift ");
+//   Serial.println(DRIFT_CONTROL);
+   
   STR.motor(1, output_R);
   STR.motor(2, output_R);
   STL.motor(1, output_L);
   STL.motor(2, output_L);
 
+  
 }
 
 /*
