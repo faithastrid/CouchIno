@@ -35,11 +35,17 @@ Currently incomplete, working on it!
 
 ## Current Objectives
 
-Implement Rotary Encoders to dynamiclly change max speed and the throttle on the right side because the left side is less powerful. This means we are currently veering left.
+ Half Completed - Implement Rotary Encoders to dynamiclly change max speed and the throttle on the right side because the left side is less powerful. This means we are currently veering left.
 
-Implement a speaker to create a horn using controller buttons.
+Planning stages right now - Implement a speaker to create a horn using controller buttons.
 
 Implement a digital e-stop
+
+### Update 3/22/23
+Changelog: I (Dhruv) updated the code. The code for both potentiometers works. However, the drift pot will not hold a stable value. It keeps fluctating. That is why I disabled that and only enabled the speed pot for now. Jake suggested the problem is with the wiring, so I will take a multimeter and check the pot later.
+
+### Update 3/20/23
+Changelog: Jake built an awsome enclosure for the pi over spring break. Today the team installed it to the chasis. It includes screw terminals for all outgoing connections and potentiometers that Dhruv will hook up later with code.
 
 ### Update 3/3/23
 Changelog (per Jake): - Examined couch to check for water damage , pi was good, nothing else seemed to have water damage - Couch seemed to be having charging issues and would spark on occasion Cause: Battery Charger was always connected across main neg and main pos of the batteries, fixed by adding a charging switch that will connect and disconnect the charger from the batteries, ziptied to the charger - In doing that, redid main connections (wrapped in pink electrical tape) using correct size bolts and nuts, but were affixed in a way that two of the brackets had to be removed. Extraneous brackets are now in the Couch box TODO: - New castor wheel - 3D printed/laser cut charging switch mount - Wiring cleanup (Later) - General re-tightening of nuts and bolts Jake TODO: - Order sprocket/socket wrench set for the office. 
