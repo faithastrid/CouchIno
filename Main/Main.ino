@@ -140,9 +140,9 @@ void loop() {
     
     //safety, just make sure the imputs dont reach values they are not supposed to
     if (input_c_R >127){ input_c_R = 127;}
-    if (input_c_R <-128){ input_c_R = -128;}
+    if (input_c_R <-127){ input_c_R = -127;}
     if (input_c_L >127){ input_c_L = 127;}
-    if (input_c_L <-128){ input_c_L = -128;}
+    if (input_c_L <-127){ input_c_L = -127;}
     delay(20);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
