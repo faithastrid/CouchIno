@@ -127,16 +127,18 @@ void loop() {
   //forward is zero backwards is 255
   //resting is 127
   SPEED_PERCENT = analogRead(pot_SPEED) / Speed_pot_max_val; //read the value of speed pot and map from 0 to 1
+  if (SPEED_PERCENT >1.0) {SPEED_PERCENT = 1.0;}
   DRIFT_CONTROL = analogRead(pot_DRIFT) / (Drift_pot_max_val / 2); //read the value of drift pot and map from 0 to 2
+  if (DRIFT_CONTROL >2.0) {DRIFT_CONTROL = 2.0;}
   Usb.Task();
   if (lf310.connected()) {
     //there are two sets here. One for if variable drift control is enabled, one for not
     //use the correct code
     
-    //input_c_L = int(DRIFT_CONTROL * (127 - lf310.lf310Data.Y)); //calculate input for left
-    //input_c_R = int((2 - DRIFT_CONTROL) * (127 - lf310.lf310Data.Rz)); //calculate input for right
-    input_c_L = int((127 - lf310.lf310Data.Y)); //calculate input for left
-    input_c_R = int((127 - lf310.lf310Data.Rz)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
+    input_c_L = int(DRIFT_CONTROL * (127 - lf310.lf310Data.Y)); //calculate input for left
+    input_c_R = int((2 - DRIFT_CONTROL) * (127 - lf310.lf310Data.Rz)); //calculate input for right
+    //input_c_L = int((127 - lf310.lf310Data.Y)); //calculate input for left
+    //input_c_R = int((127 - lf310.lf310Data.Rz)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
     
     //safety, just make sure the imputs dont reach values they are not supposed to
     if (input_c_R >127){ input_c_R = 127;}
@@ -146,6 +148,7 @@ void loop() {
     delay(20);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
+  
 }
 
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms

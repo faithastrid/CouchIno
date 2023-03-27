@@ -1,4 +1,4 @@
-int potPin = A2; // Potentiometer output connected to analog pin
+int potPin = A1; // Potentiometer output connected to analog pin
 float potVal = 0; // Variable to store the input from the potentiometer
 
 
