@@ -33,13 +33,18 @@ but these ones should already be in the GitHub and not require downloads.
 
 Currently incomplete, working on it!
 
+## Complete Objectives
+
+Completed - Implement Rotary Encoders to dynamiclly change max speed and the throttle on the right side because the left side is less powerful. This means we are currently veering left.
+
 ## Current Objectives
 
- Half Completed - Implement Rotary Encoders to dynamiclly change max speed and the throttle on the right side because the left side is less powerful. This means we are currently veering left.
-
-Planning stages right now - Implement a speaker to create a horn using controller buttons.
+Planning stages right now - Implement a speaker to create a horn using controller buttons. Mux switch between bluetooth module and the arduino. Arduino uses small sounds. Bluetooth modules for songs. Connects to computer speakers.
 
 Implement a digital e-stop
+
+### Update 3/27/23
+Changelog: I (dhruv) along with Jake got the drift pot working. We changed nothing, it just decided to start working when we tested it. That is basically all we did today. I will research some bluetooth modules for the speaker system.
 
 ### Update 3/22/23
 Changelog: I (Dhruv) updated the code. The code for both potentiometers works. However, the drift pot will not hold a stable value. It keeps fluctating. That is why I disabled that and only enabled the speed pot for now. Jake suggested the problem is with the wiring, so I will take a multimeter and check the pot later.
