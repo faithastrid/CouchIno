@@ -43,8 +43,11 @@ Planning stages right now - Implement a speaker to create a horn using controlle
 
 Implement a digital e-stop
 
+### Update 4/3/23
+Weekly meeting: Arnav, Dhruv, Faith, and Purva took the couch for a drive around the EER bottom floor. Planned details for the showcase on Friday. Caught Faith up on audio plans for future.
+
 ### Update 3/27/23
-Changelog: I (dhruv) along with Jake got the drift pot working. We changed nothing, it just decided to start working when we tested it. That is basically all we did today. I will research some bluetooth modules for the speaker system.
+Changelog: I (Dhruv) along with Jake got the drift pot working. We changed nothing, it just decided to start working when we tested it. That is basically all we did today. I will research some bluetooth modules for the speaker system.
 
 ### Update 3/22/23
 Changelog: I (Dhruv) updated the code. The code for both potentiometers works. However, the drift pot will not hold a stable value. It keeps fluctating. That is why I disabled that and only enabled the speed pot for now. Jake suggested the problem is with the wiring, so I will take a multimeter and check the pot later.
