@@ -12,6 +12,8 @@ Sabertooth STR(129, SWSerial);
 //these are the pins the pots are connected to
 int pot_SPEED = A0;
 int pot_DRIFT = A1;
+int outprinter = 0;//0 means drive
+int driftpot = 1;//0 means no pot
 
 //these are the max recorded values on the pots, use encoder_input test function to verify whenever pots change
 const float Drift_pot_max_val = 798;
@@ -35,12 +37,12 @@ int output_L = 0;
 // baud rate 9600
 
 //dip switches for address 128
-// 1 on
+// 1 off
 // 2 off
 // 3 on
-// 4 off
+// 4 on
 // 5 on
-// 6 off
+// 6 on
 
 //dip switches for address 129
 // 1 off
@@ -127,24 +129,22 @@ void loop() {
   //forward is zero backwards is 255
   //resting is 127
   SPEED_PERCENT = analogRead(pot_SPEED) / Speed_pot_max_val; //read the value of speed pot and map from 0 to 1
-  if (SPEED_PERCENT >1.0) {SPEED_PERCENT = 1.0;}
+  if (SPEED_PERCENT >0.6) {SPEED_PERCENT = 0.6;}
   DRIFT_CONTROL = analogRead(pot_DRIFT) / (Drift_pot_max_val / 2); //read the value of drift pot and map from 0 to 2
   if (DRIFT_CONTROL >2.0) {DRIFT_CONTROL = 2.0;}
   Usb.Task();
   if (lf310.connected()) {
     //there are two sets here. One for if variable drift control is enabled, one for not
     //use the correct code
-    
+    if (driftpot == 1){
     input_c_L = int(DRIFT_CONTROL * (127 - lf310.lf310Data.Y)); //calculate input for left
     input_c_R = int((2 - DRIFT_CONTROL) * (127 - lf310.lf310Data.Rz)); //calculate input for right
-    //input_c_L = int((127 - lf310.lf310Data.Y)); //calculate input for left
-    //input_c_R = int((127 - lf310.lf310Data.Rz)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
+    } else {
+    input_c_L = int((127 - lf310.lf310Data.Y)); //calculate input for left
+    input_c_R = int((127 - lf310.lf310Data.Rz)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
+    }
     
-    //safety, just make sure the imputs dont reach values they are not supposed to
-    if (input_c_R >127){ input_c_R = 127;}
-    if (input_c_R <-127){ input_c_R = -127;}
-    if (input_c_L >127){ input_c_L = 127;}
-    if (input_c_L <-127){ input_c_L = -127;}
+
     delay(20);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
@@ -153,26 +153,32 @@ void loop() {
 
 ISR(TIMER4_COMPA_vect){//timer 4 interrupts every 50ms
 
+      //safety, just make sure the imputs dont reach values they are not supposed to
+    if (input_c_R >127){ input_c_R = 127;}
+    if (input_c_R <-127){ input_c_R = -127;}
+    if (input_c_L >127){ input_c_L = 127;}
+    if (input_c_L <-127){ input_c_L = -127;}
+    
   //first call the math functions using our inputs
-  output_R = SmoothVelocity_R(input_c_R  * SPEED_PERCENT);
-  output_L = SmoothVelocity_L(input_c_L  * SPEED_PERCENT);
+  output_R = SmoothVelocity_R(input_c_R * SPEED_PERCENT);
+  output_L = SmoothVelocity_L(input_c_L * SPEED_PERCENT);
 
 //testing data, either write to motors, or write to laptop to debug
-
-//   Serial.print("Output R ");
-//   Serial.println(output_R);
-//   Serial.print("Output L ");
-//   Serial.println(output_L);
-//   Serial.print("Speed ");
-//   Serial.println(SPEED_PERCENT);
-//   Serial.print("Drift ");
-//   Serial.println(DRIFT_CONTROL);
-   
+if (outprinter == 1){
+   Serial.print("Output R ");
+   Serial.println(output_R);
+   Serial.print("Output L ");
+   Serial.println(output_L);
+   Serial.print("Speed ");
+   Serial.println(SPEED_PERCENT);
+   Serial.print("Drift ");
+   Serial.println(DRIFT_CONTROL);
+}else {
   STR.motor(1, output_R);
   STR.motor(2, output_R);
   STL.motor(1, output_L);
   STL.motor(2, output_L);
-
+}
   
 }
 

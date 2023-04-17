@@ -43,6 +43,11 @@ Planning stages right now - Implement a speaker to create a horn using controlle
 
 Implement a digital e-stop
 
+
+### Update 4/10/23
+Showcase was on friday. Dhruv, faith, arnav, and jake were there. SHoutout jake for running mutliple robots. After showcase, Jake and Dhruv took couch on a testdrive, and then it stopped working. 
+Weekly Update: Batteriues are at 13.7V. They should be at 12. When we turn on couch, we drive, then error lights turn on. No idea why. Working on it.
+
 ### Update 4/3/23
 Weekly meeting: Arnav, Dhruv, Faith, and Purva took the couch for a drive around the EER bottom floor. Planned details for the showcase on Friday. Caught Faith up on audio plans for future.
 
