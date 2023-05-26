@@ -1,5 +1,10 @@
 #include "Sabertooth.h"
 #include <SoftwareSerial.h>
+
+#include <Bluepad32.h>
+
+GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
+
 //Packet serial
 SoftwareSerial SWSerial(NOT_A_PIN, 23 ); // RX on no pin (unused), TX on pin 14 (to S1).
 Sabertooth STL(128, SWSerial);
@@ -112,8 +117,48 @@ void setup() {
     timerAlarmEnable(Timer0_Cfg);
 
   sei();//allow interrupts
-
+  BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+  BP32.forgetBluetoothKeys();
 }
+
+void onConnectedGamepad(GamepadPtr gp) {
+    bool foundEmptySlot = false;
+    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+        if (myGamepads[i] == nullptr) {
+            Serial.printf("CALLBACK: Gamepad is connected, index=%d\n", i);
+            // Additionally, you can get certain gamepad properties like:
+            // Model, VID, PID, BTAddr, flags, etc.
+            GamepadProperties properties = gp->getProperties();
+            Serial.printf("Gamepad model: %s, VID=0x%04x, PID=0x%04x\n", gp->getModelName().c_str(), properties.vendor_id,
+                           properties.product_id);
+            myGamepads[i] = gp;
+            foundEmptySlot = true;
+            break;
+        }
+    }
+    if (!foundEmptySlot) {
+        Serial.println("CALLBACK: Gamepad connected, but could not found empty slot");
+    }
+}
+
+void onDisconnectedGamepad(GamepadPtr gp) {
+    bool foundGamepad = false;
+
+    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+        if (myGamepads[i] == gp) {
+            Serial.printf("CALLBACK: Gamepad is disconnected from index=%d\n", i);
+            myGamepads[i] = nullptr;
+            foundGamepad = true;
+            break;
+        }
+    }
+
+    if (!foundGamepad) {
+        Serial.println("CALLBACK: Gamepad disconnected, but not found in myGamepads");
+    }
+}
+
+
 /*
  * Main loop
 */
@@ -122,20 +167,48 @@ void loop() {
   //both joysticks go from 0 to 255
   //forward is zero backwards is 255
   //resting is 127
-  SPEED_PERCENT = analogRead(pot_SPEED) / Speed_pot_max_val; //read the value of speed pot and map from 0 to 1
-  if (SPEED_PERCENT >0.6) {SPEED_PERCENT = 0.6;}
-  DRIFT_CONTROL = analogRead(pot_DRIFT) / (Drift_pot_max_val / 2); //read the value of drift pot and map from 0 to 2
-  if (DRIFT_CONTROL >2.0) {DRIFT_CONTROL = 2.0;}
-  
-    //there are two sets here. One for if variable drift control is enabled, one for not
-    //use the correct code
-    if (driftpot == 1){
-    input_c_L = int(DRIFT_CONTROL * (127)); //calculate input for left
-    input_c_R = int((2 - DRIFT_CONTROL) * (127)); //calculate input for right
-    } else {
-    input_c_L = int((127)); //calculate input for left
-    input_c_R = int((127)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
-    
+
+  // This call fetches all the gamepad info from the NINA (ESP32) module.
+    // Just call this function in your main loop.
+    // The gamepads pointer (the ones received in the callbacks) gets updated
+    // automatically.
+    BP32.update();
+
+    // It is safe to always do this before using the gamepad API.
+    // This guarantees that the gamepad is valid and connected.
+    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+        GamepadPtr myGamepad = myGamepads[i];
+
+        if (myGamepad && myGamepad->isConnected()) {
+            // There are different ways to query whether a button is pressed.
+            // By query each button individually:
+            //  a(), b(), x(), y(), l1(), etc...
+            // Another way to query the buttons, is by calling buttons(), or
+            // miscButtons() which return a bitmask.
+            // Some gamepads also have DPAD, axis and more.
+//            Serial.printf(
+//                "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, "
+//                "%4d, brake: %4d, throttle: %4d, misc: 0x%02x\n",
+//                i,                        // Gamepad Index
+//                myGamepad->dpad(),        // DPAD
+//                myGamepad->buttons(),     // bitmask of pressed buttons
+//                myGamepad->axisX(),       // (-511 - 512) left X Axis
+//                myGamepad->axisY(),       // (-511 - 512) left Y axis
+//                myGamepad->axisRX(),      // (-511 - 512) right X axis
+//                myGamepad->axisRY(),      // (-511 - 512) right Y axis
+//                myGamepad->brake(),       // (0 - 1023): brake button
+//                myGamepad->throttle(),    // (0 - 1023): throttle (AKA gas) button
+//                myGamepad->miscButtons()  // bitmak of pressed "misc" buttons
+//            );
+              
+              input_c_R = map(myGamepad->axisRY(), -511, 512, 255, -255);
+              input_c_L = map(myGamepad->axisY(), -511, 512, 255, -255);
+              
+             
+
+            // You can query the axis and other properties as well. See Gamepad.h
+            // For all the available functions.
+        }
     
 
     delay(20);
