@@ -6,7 +6,7 @@
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 
 //Packet serial
-SoftwareSerial SWSerial(NOT_A_PIN, 23 ); // RX on no pin (unused), TX on pin 14 (to S1).
+SoftwareSerial SWSerial(NOT_A_PIN, TX0 ); // RX on no pin (unused), TX on pin 14 (to S1).
 Sabertooth STL(128, SWSerial);
 Sabertooth STR(129, SWSerial);
 //  Sabertooth STL(128);
@@ -18,7 +18,7 @@ Sabertooth STR(129, SWSerial);
 int pot_SPEED = 5;
 int pot_DRIFT = 8;
 int outprinter = 0;//0 means drive
-int driftpot = 1;//0 means no pot
+int driftpot = 0;//0 means no pot
 
 //these are the max recorded values on the pots, use encoder_input test function to verify whenever pots change
 const float Drift_pot_max_val = 798;
@@ -98,7 +98,16 @@ if (outprinter == 1){
 void setup() { 
   // put your setup code here, to run once:
   // start communication  
-  SWSerial.begin(9600); // start talking to motor controller
+  SWSerial.begin(115200); // start talking to motor controller
+
+/*
+   
+  SWSerial.begin(9600);
+  ST.setBaudRate(115200);
+  SWSerial.end();
+  SWSerial.begin(115200);
+ */
+  
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
   //only works in increments of 100 milliseconds
@@ -117,8 +126,21 @@ void setup() {
     timerAlarmEnable(Timer0_Cfg);
 
   sei();//allow interrupts
-  BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
-  BP32.forgetBluetoothKeys();
+//Controller Code
+    //Serial.begin(115200);
+    Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
+    const uint8_t* addr = BP32.localBdAddress();
+    Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+    // Setup the Bluepad32 callbacks
+    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+
+    // "forgetBluetoothKeys()" should be called when the user performs
+    // a "device factory reset", or similar.
+    // Calling "forgetBluetoothKeys" in setup() just as an example.
+    // Forgetting Bluetooth keys prevents "paired" gamepads to reconnect.
+    // But might also fix some connection / re-connection issues.
+    BP32.forgetBluetoothKeys();
 }
 
 void onConnectedGamepad(GamepadPtr gp) {
@@ -183,6 +205,46 @@ void loop() {
             // There are different ways to query whether a button is pressed.
             // By query each button individually:
             //  a(), b(), x(), y(), l1(), etc...
+                        if (myGamepad->a()) {
+                static int colorIdx = 0;
+                // Some gamepads like DS4 and DualSense support changing the color LED.
+                // It is possible to change it by calling:
+                switch (colorIdx % 3) {
+                    case 0:
+                        // Red
+                        myGamepad->setColorLED(255, 0, 0);
+                        break;
+                    case 1:
+                        // Green
+                        myGamepad->setColorLED(0, 255, 0);
+                        break;
+                    case 2:
+                        // Blue
+                        myGamepad->setColorLED(0, 0, 255);
+                        break;
+                }
+                colorIdx++;
+            }
+
+            if (myGamepad->b()) {
+                // Turn on the 4 LED. Each bit represents one LED.
+                static int led = 0;
+                led++;
+                // Some gamepads like the DS3, DualSense, Nintendo Wii, Nintendo Switch
+                // support changing the "Player LEDs": those 4 LEDs that usually indicate
+                // the "gamepad seat".
+                // It is possible to change them by calling:
+                myGamepad->setPlayerLEDs(led & 0x0f);
+            }
+
+            if (myGamepad->x()) {
+                // Duration: 255 is ~2 seconds
+                // force: intensity
+                // Some gamepads like DS3, DS4, DualSense, Switch, Xbox One S support
+                // rumble.
+                // It is possible to set it by calling:
+                myGamepad->setRumble(0xc0 /* force */, 0xc0 /* duration */);
+            }
             // Another way to query the buttons, is by calling buttons(), or
             // miscButtons() which return a bitmask.
             // Some gamepads also have DPAD, axis and more.
@@ -201,8 +263,8 @@ void loop() {
 //                myGamepad->miscButtons()  // bitmak of pressed "misc" buttons
 //            );
               
-              input_c_R = map(myGamepad->axisRY(), -511, 512, 255, -255);
-              input_c_L = map(myGamepad->axisY(), -511, 512, 255, -255);
+              input_c_R = map(myGamepad->axisRY(), -511, 512, 127, -127);
+              input_c_L = map(myGamepad->axisY(), -511, 512, 127, -127);
               
              
 
@@ -211,7 +273,7 @@ void loop() {
         }
     
 
-    delay(20);
+    delay(150);
     //read input from controller and put it into the variable input_c_L and input_c_R
   }
   
