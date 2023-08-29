@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 // Set Baud Rate Sample for Packet Serial
 // Copyright (c) 2012 Dimension Engineering LLC
 // See license.txt for license details.
@@ -9,7 +11,10 @@
 //       in the event that the Sabertooth lost power.
 #include <Sabertooth.h>
 
-Sabertooth ST(128);
+
+SoftwareSerial SWSerial(NOT_A_PIN, 14 ); // RX on no pin (unused), TX on pin 14 (to S1).
+Sabertooth STL(128, SWSerial);
+Sabertooth STR(129, SWSerial);
 
 void setup()
 {
@@ -28,21 +33,18 @@ void setup()
   // WARNING: The Sabertooth remembers this command between restarts.
   // To change your Sabertooth back to its default, you must *be at the baud rate you've
   // set the Sabertooth to*, and then call ST.setBaudRate(9600)
-  SabertoothTXPinSerial.begin(9600);
-  ST.setBaudRate(2400);
-  SabertoothTXPinSerial.end();
-
-  // OK, we're at 2400. Let's talk to the Sabertooth at that speed.
-  SabertoothTXPinSerial.begin(2400);  
+  SWSerial.begin(9600);
+  STR.setBaudRate(115200);
+  STL.setBaudRate(115200);
+  SWSerial.end();
+  SWSerial.begin(115200);
 }
 
 void loop()
 {
-  ST.drive(0);
-  ST.turn(20);
-  delay(2000);
+  STR.motor(1, 60);
+  STR.motor(2, 60);
+  STL.motor(1, 60);
   
-  ST.turn(-20);
-  delay(2000);
+  STL.motor(2, 60);
 }
-

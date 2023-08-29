@@ -6,7 +6,7 @@
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 
 //Packet serial
-SoftwareSerial SWSerial(NOT_A_PIN, TX0 ); // RX on no pin (unused), TX on pin 14 (to S1).
+EspSoftwareSerial SWSerial(NOT_A_PIN, 19 ); // RX on no pin (unused), TX on pin 14 (to S1).
 Sabertooth STL(128, SWSerial);
 Sabertooth STR(129, SWSerial);
 //  Sabertooth STL(128);
@@ -100,13 +100,7 @@ void setup() {
   // start communication  
   SWSerial.begin(115200); // start talking to motor controller
 
-/*
-   
-  SWSerial.begin(9600);
-  ST.setBaudRate(115200);
-  SWSerial.end();
-  SWSerial.begin(115200);
- */
+
   
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
