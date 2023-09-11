@@ -48,18 +48,18 @@ void Sabertooth::autobaud(SabertoothStream& port, boolean dontWait)
   if (!dontWait) { delay(500); }
 }
 
-void Sabertooth::command(byte command, byte value) const
+void Sabertooth::command(byte dir, byte value) const
 {
   port().write(address());
-  port().write(command);
+  port().write(dir);
   port().write(value);
-  port().write((address() + command + value) & B01111111);
+  port().write((address() + dir + value) & B01111111);
 }
 
-void Sabertooth::throttleCommand(byte command, int power) const
+void Sabertooth::throttleCommand(byte dir, int power) const
 {
   power = constrain(power, -126, 126);
-  this->command(command, (byte)abs(power));
+  this->command(dir, (byte)abs(power));
 }
 
 void Sabertooth::motor(int power) const

@@ -90,7 +90,7 @@ public:
   \param command The number of the command.
   \param value   The command's value.
   */
-  void command(byte command, byte value) const;
+  void command(byte dir, byte value) const;
   
 public:
   /*!
@@ -172,7 +172,7 @@ public:
   void setTimeout(int milliseconds) const;
   
 private:
-  void throttleCommand(byte command, int power) const;
+  void throttleCommand(byte dir, int power) const;
   
 private:
   const byte        _address;

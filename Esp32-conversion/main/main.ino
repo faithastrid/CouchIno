@@ -1,6 +1,8 @@
+#include <Bluepad32.h>
+
 #include "Sabertooth.h"
 #include <SoftwareSerial.h>
-#include <Bluepad32.h>
+
 
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 
@@ -18,7 +20,7 @@ Sabertooth STR(129, SWSerial);
 //these are the pins the pots are connected to
 int pot_SPEED = 5;
 int pot_DRIFT = 8;
-int outprinter = 1;//0 means drive
+int outprinter = 0;//0 means drive
 int driftpot = 0;//0 means no pot
 
 //these are the max recorded values on the pots, use encoder_input test function to verify whenever pots change
