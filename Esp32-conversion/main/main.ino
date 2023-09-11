@@ -1,13 +1,13 @@
 #include "Sabertooth.h"
 #include <SoftwareSerial.h>
-
 #include <Bluepad32.h>
 
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 
-//Packet serial
+#define MYPORT_TX 19
+#define MYPORT_RX 21
 
-SoftwareSerial SWSerial(NOT_A_PIN, 19 ); // RX on no pin (unused), TX on pin 14 (to S1).
+EspSoftwareSerial::UART SWSerial;
 Sabertooth STL(128, SWSerial);
 Sabertooth STR(129, SWSerial);
 //  Sabertooth STL(128);
@@ -18,7 +18,7 @@ Sabertooth STR(129, SWSerial);
 //these are the pins the pots are connected to
 int pot_SPEED = 5;
 int pot_DRIFT = 8;
-int outprinter = 0;//0 means drive
+int outprinter = 1;//0 means drive
 int driftpot = 0;//0 means no pot
 
 //these are the max recorded values on the pots, use encoder_input test function to verify whenever pots change
@@ -95,49 +95,6 @@ if (outprinter == 1){
   
 }
 
-
-void setup() { 
-  // put your setup code here, to run once:
-  // start communication  
-  SWSerial.begin(115200); // start talking to motor controller
-
-
-  
-  STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
-  STR.setTimeout(100);
-  //only works in increments of 100 milliseconds
-  //this will stop motors on .10 seconds without new input
-
-  //  ST.setDeadband(20); //this will create a deadspot from -20 to 20
-  //this will stop the motor if the incoming input is in the deadspot for one second
-  //will help later to fine tune controller
-
-
-  cli();//stop interrupts
-
-    Timer0_Cfg = timerBegin(0, 800, true);
-    timerAttachInterrupt(Timer0_Cfg, &Timer0_ISR, true);
-    timerAlarmWrite(Timer0_Cfg, 5000, true);
-    timerAlarmEnable(Timer0_Cfg);
-
-  sei();//allow interrupts
-//Controller Code
-    //Serial.begin(115200);
-    Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
-    const uint8_t* addr = BP32.localBdAddress();
-    Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-
-    // Setup the Bluepad32 callbacks
-    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
-
-    // "forgetBluetoothKeys()" should be called when the user performs
-    // a "device factory reset", or similar.
-    // Calling "forgetBluetoothKeys" in setup() just as an example.
-    // Forgetting Bluetooth keys prevents "paired" gamepads to reconnect.
-    // But might also fix some connection / re-connection issues.
-    BP32.forgetBluetoothKeys();
-}
-
 void onConnectedGamepad(GamepadPtr gp) {
     bool foundEmptySlot = false;
     for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
@@ -174,6 +131,60 @@ void onDisconnectedGamepad(GamepadPtr gp) {
         Serial.println("CALLBACK: Gamepad disconnected, but not found in myGamepads");
     }
 }
+
+void setup() { 
+
+  Serial.begin(115200);
+  Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
+  const uint8_t* addr = BP32.localBdAddress();
+  Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+    // Setup the Bluepad32 callbacks
+    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+
+    // "forgetBluetoothKeys()" should be called when the user performs
+    // a "device factory reset", or similar.
+    // Calling "forgetBluetoothKeys" in setup() just as an example.
+    // Forgetting Bluetooth keys prevents "paired" gamepads to reconnect.
+    // But might also fix some connection / re-connection issues.
+    BP32.forgetBluetoothKeys();
+  //Packet serial
+  
+  SWSerial.begin(115200, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false);
+  if (!SWSerial) { // If the object did not initialize, then its configuration is invalid
+    Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
+    while (1) { // Don't continue with invalid configuration
+      delay (1000);
+    }
+  }
+  // put your setup code here, to run once:
+  // start communication  
+  //SWSerial.begin(115200); // start talking to motor controller
+
+
+  
+  STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
+  STR.setTimeout(100);
+  //only works in increments of 100 milliseconds
+  //this will stop motors on .10 seconds without new input
+
+  //  ST.setDeadband(20); //this will create a deadspot from -20 to 20
+  //this will stop the motor if the incoming input is in the deadspot for one second
+  //will help later to fine tune controller
+
+
+  cli();//stop interrupts
+
+    Timer0_Cfg = timerBegin(0, 800, true);
+    timerAttachInterrupt(Timer0_Cfg, &Timer0_ISR, true);
+    timerAlarmWrite(Timer0_Cfg, 5000, true);
+    timerAlarmEnable(Timer0_Cfg);
+
+  sei();//allow interrupts
+
+}
+
+
 
 
 /*
