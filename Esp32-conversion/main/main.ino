@@ -6,7 +6,8 @@
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 
 //Packet serial
-EspSoftwareSerial SWSerial(NOT_A_PIN, 19 ); // RX on no pin (unused), TX on pin 14 (to S1).
+
+SoftwareSerial SWSerial(NOT_A_PIN, 19 ); // RX on no pin (unused), TX on pin 14 (to S1).
 Sabertooth STL(128, SWSerial);
 Sabertooth STR(129, SWSerial);
 //  Sabertooth STL(128);

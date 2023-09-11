@@ -12,15 +12,15 @@ Sabertooth STR(129, SWSerial);
 //these are the pins the pots are connected to
 int pot_SPEED = A0;
 int pot_DRIFT = A1;
-int outprinter = 0;//0 means drive
-int driftpot = 1;//0 means no pot
+int outprinter = 1;//0 means drive
+int driftpot = 0;//0 means no pot
 
 //these are the max recorded values on the pots, use encoder_input test function to verify whenever pots change
 const float Drift_pot_max_val = 798;
 const float Speed_pot_max_val = 798;
 
 //declare the variables i use to multiply in
-float SPEED_PERCENT = .5;
+float SPEED_PERCENT = .9;
 float DRIFT_CONTROL = 1.0;
 
 //these are the motor variables initialized
@@ -89,7 +89,7 @@ void setup() {
         
   // put your setup code here, to run once:
   // start communication  
-  SWSerial.begin(9600); // start talking to motor controller
+  SWSerial.begin(115200); // start talking to motor controller
   STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
   STR.setTimeout(100);
   //only works in increments of 100 milliseconds
