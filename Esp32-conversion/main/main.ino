@@ -1,6 +1,5 @@
 #include <Bluepad32.h>
 
-#include "Sabertooth.h"
 #include <SoftwareSerial.h>
 
 
@@ -10,8 +9,11 @@ GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 #define MYPORT_RX 21
 
 EspSoftwareSerial::UART SWSerial;
-Sabertooth STL(128, SWSerial);
-Sabertooth STR(129, SWSerial);
+//Sabertooth STL(128, SWSerial);
+//Sabertooth STR(129, SWSerial);
+#define leftdrive 128
+#define rightdrive 129
+
 //  Sabertooth STL(128);
 //  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
@@ -89,10 +91,10 @@ if (outprinter == 1){
    Serial.print("Drift ");
    Serial.println(DRIFT_CONTROL);
 }else {
-  STR.motor(1, output_R);
-  STR.motor(2, output_R);
-  STL.motor(1, output_L);
-  STL.motor(2, output_L);
+  motor(rightdrive, 1, output_R);
+  motor(rightdrive, 2, output_R);
+  motor(leftdrive, 1, output_L);
+  motor(leftdrive, 2, output_L);
 }
   
 }
@@ -165,8 +167,8 @@ void setup() {
 
 
   
-  STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
-  STR.setTimeout(100);
+  //STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
+  //STR.setTimeout(100);
   //only works in increments of 100 milliseconds
   //this will stop motors on .10 seconds without new input
 
@@ -362,4 +364,22 @@ int SmoothJerk_L(int Jerk_new_L){
   CurrJerk_L[ptJerk_L] = Jerk_new_L;
   ptJerk_L = (ptJerk_L + 1) % ramper;
   return MeanJerk_L / ramper;
+}
+
+
+void motor (byte side, byte which, byte power){
+  byte func = 0;
+  if (which ==2){
+    func+=4;
+  }
+  if (power<0){
+    func++;
+  }
+  power = abs(power);
+  SWSerial.write(side);
+  SWSerial.write(func);
+  SWSerial.write(power);
+  SWSerial.write((side +func+power)& 0b01111111);
+  
+
 }
