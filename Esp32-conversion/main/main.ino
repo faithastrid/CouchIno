@@ -1,7 +1,7 @@
 #include <Bluepad32.h>
 
 #include "Sabertooth.h"
-#include <SoftwareSerial.h>
+
 
 
 GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
@@ -9,9 +9,9 @@ GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 #define MYPORT_TX 19
 #define MYPORT_RX 21
 
-EspSoftwareSerial::UART SWSerial;
-Sabertooth STL(128, SWSerial);
-Sabertooth STR(129, SWSerial);
+
+Sabertooth STL(128, Serial2);
+Sabertooth STR(129, Serial2);
 //  Sabertooth STL(128);
 //  Sabertooth STR(129);
 //STL and STR refer to the different motor controllers
@@ -28,7 +28,7 @@ const float Drift_pot_max_val = 798;
 const float Speed_pot_max_val = 798;
 
 //declare the variables i use to multiply in
-float SPEED_PERCENT = .5;
+float SPEED_PERCENT = .55;
 float DRIFT_CONTROL = 1.0;
 
 //these are the motor variables initialized
@@ -78,22 +78,22 @@ void IRAM_ATTR Timer0_ISR() {//timer 4 interrupts every 50ms
   output_R = SmoothVelocity_R(input_c_R * SPEED_PERCENT);
   output_L = SmoothVelocity_L(input_c_L * SPEED_PERCENT);
 
-//testing data, either write to motors, or write to laptop to debug
-if (outprinter == 1){
-   Serial.print("Output R ");
-   Serial.println(output_R);
-   Serial.print("Output L ");
-   Serial.println(output_L);
-   Serial.print("Speed ");
-   Serial.println(SPEED_PERCENT);
-   Serial.print("Drift ");
-   Serial.println(DRIFT_CONTROL);
-}else {
-  STR.motor(1, output_R);
-  STR.motor(2, output_R);
-  STL.motor(1, output_L);
-  STL.motor(2, output_L);
-}
+  //testing data, either write to motors, or write to laptop to debug
+  if (outprinter == 1){
+    Serial.print("Output R ");
+    Serial.println(output_R);
+    Serial.print("Output L ");
+    Serial.println(output_L);
+    Serial.print("Speed ");
+    Serial.println(SPEED_PERCENT);
+    Serial.print("Drift ");
+    Serial.println(DRIFT_CONTROL);
+  }else {
+    STR.motor(1, output_R);
+    STR.motor(2, output_R);
+    STL.motor(1, output_L);
+    STL.motor(2, output_L);
+  }
   
 }
 
@@ -152,21 +152,21 @@ void setup() {
     BP32.forgetBluetoothKeys();
   //Packet serial
   
-  SWSerial.begin(115200, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false);
-  if (!SWSerial) { // If the object did not initialize, then its configuration is invalid
-    Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
-    while (1) { // Don't continue with invalid configuration
-      delay (1000);
-    }
-  }
+  Serial2.begin(115200, SERIAL_8N1, MYPORT_RX, MYPORT_TX);
+  // if (!SWSerial) { // If the object did not initialize, then its configuration is invalid
+  //   Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
+  //   while (1) { // Don't continue with invalid configuration
+  //     delay (1000);
+  //   }
+  // }
   // put your setup code here, to run once:
   // start communication  
   //SWSerial.begin(115200); // start talking to motor controller
 
 
   
-  STL.setTimeout(100); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
-  STR.setTimeout(100);
+  STL.setTimeout(500); // this will cause the motor controls to stop all motors if a new input is not received in this timeframe
+  STR.setTimeout(500);
   //only works in increments of 100 milliseconds
   //this will stop motors on .10 seconds without new input
 
@@ -192,7 +192,7 @@ void setup() {
 /*
  * Main loop
 */
-void loop() {
+void loop() { 
   // put your main code here, to run repeatedly:
   //both joysticks go from 0 to 255
   //forward is zero backwards is 255
@@ -202,6 +202,8 @@ void loop() {
     // Just call this function in your main loop.
     // The gamepads pointer (the ones received in the callbacks) gets updated
     // automatically.
+    input_c_R = 0;
+    input_c_L = 0;
     BP32.update();
 
     // It is safe to always do this before using the gamepad API.
@@ -256,20 +258,29 @@ void loop() {
             // Another way to query the buttons, is by calling buttons(), or
             // miscButtons() which return a bitmask.
             // Some gamepads also have DPAD, axis and more.
-//            Serial.printf(
-//                "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, "
-//                "%4d, brake: %4d, throttle: %4d, misc: 0x%02x\n",
-//                i,                        // Gamepad Index
-//                myGamepad->dpad(),        // DPAD
-//                myGamepad->buttons(),     // bitmask of pressed buttons
-//                myGamepad->axisX(),       // (-511 - 512) left X Axis
-//                myGamepad->axisY(),       // (-511 - 512) left Y axis
-//                myGamepad->axisRX(),      // (-511 - 512) right X axis
-//                myGamepad->axisRY(),      // (-511 - 512) right Y axis
-//                myGamepad->brake(),       // (0 - 1023): brake button
-//                myGamepad->throttle(),    // (0 - 1023): throttle (AKA gas) button
-//                myGamepad->miscButtons()  // bitmak of pressed "misc" buttons
-//            );
+    //            Serial.printf(
+    //                "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, "
+    //                "%4d, brake: %4d, throttle: %4d, misc: 0x%02x\n",
+    //                i,                        // Gamepad Index
+    //                myGamepad->dpad(),        // DPAD
+    //                myGamepad->buttons(),     // bitmask of pressed buttons
+    //                myGamepad->axisX(),       // (-511 - 512) left X Axis
+    //                myGamepad->axisY(),       // (-511 - 512) left Y axis
+    //                myGamepad->axisRX(),      // (-511 - 512) right X axis
+    //                myGamepad->axisRY(),      // (-511 - 512) right Y axis
+    //                myGamepad->brake(),       // (0 - 1023): brake button
+    //                myGamepad->throttle(),    // (0 - 1023): throttle (AKA gas) button
+    //                myGamepad->miscButtons()  // bitmak of pressed "misc" buttons
+    //            );
+
+            if (myGamepad->r1()){
+              SPEED_PERCENT += .05;
+              if(SPEED_PERCENT >.75) SPEED_PERCENT = 0.75;
+            }
+            if (myGamepad->l1()){
+              SPEED_PERCENT -= .05;
+              if(SPEED_PERCENT <.25) SPEED_PERCENT = 0.25;
+            }
               
               input_c_R = map(myGamepad->axisRY(), -511, 512, 127, -127);
               input_c_L = map(myGamepad->axisY(), -511, 512, 127, -127);

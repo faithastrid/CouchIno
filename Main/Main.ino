@@ -20,7 +20,7 @@ const float Drift_pot_max_val = 798;
 const float Speed_pot_max_val = 798;
 
 //declare the variables i use to multiply in
-float SPEED_PERCENT = .9;
+float SPEED_PERCENT = .75;
 float DRIFT_CONTROL = 1.0;
 
 //these are the motor variables initialized
@@ -136,10 +136,18 @@ void loop() {
   if (lf310.connected()) {
     //there are two sets here. One for if variable drift control is enabled, one for not
     //use the correct code
+    Serial.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
     if (driftpot == 1){
+      Serial.println("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+      Serial.println(lf310.lf310Data.Y);
+      Serial.println(lf310.lf310Data.Rz);
     input_c_L = int(DRIFT_CONTROL * (127 - lf310.lf310Data.Y)); //calculate input for left
     input_c_R = int((2 - DRIFT_CONTROL) * (127 - lf310.lf310Data.Rz)); //calculate input for right
     } else {
+      Serial.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
+      Serial.println(lf310.lf310Data.Y);
+      Serial.println(lf310.lf310Data.Rz);
     input_c_L = int((127 - lf310.lf310Data.Y)); //calculate input for left
     input_c_R = int((127 - lf310.lf310Data.Rz)); //calculate input for right. uses 2- so the other motor is correct ofset to this one
     }
